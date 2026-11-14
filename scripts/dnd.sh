@@ -30,29 +30,37 @@ tapt(){ for i in 1 2 3 4; do adb shell uiautomator dump /sdcard/u.xml >/dev/null
  if [ -n "$X" ]; then adb shell input tap $X $Y; echo "tapped $1 at $X $Y" >> $L; sleep 3; return 0; fi
  adb shell input swipe 540 1800 540 800 300; sleep 2; done; echo "NOT FOUND: $1" >> $L; return 1; }
 home(){ adb shell input keyevent KEYCODE_HOME; sleep 2; }
-# 1 notification history
+# A notification dismiss + history + snooze
 adb shell am start -a android.settings.NOTIFICATION_HISTORY; sleep 4
-tapt "Use notification history"; sleep 2; snap h1-on
+tapt "Use notification history" ; sleep 2
 home
-adb shell cmd notification post -S bigtext -t "Priya" t1 "Flat number is B-204, gate code 4471" >> $L 2>&1; sleep 2
-adb shell input swipe 540 5 540 1300 300; sleep 2; snap h2-shade
-adb shell input swipe 900 800 1000 800 300; sleep 1; snap h3-swiped
-adb shell cmd statusbar collapse; sleep 1; home
-adb shell am start -a android.settings.NOTIFICATION_HISTORY; sleep 4; snap h4-history
-# 2 snooze
-home; adb shell cmd notification post -S bigtext -t "Cab" t2 "Your driver arrives in 5 min" >> $L 2>&1; sleep 2
-adb shell input swipe 540 5 540 1300 300; sleep 2; snap s1-shade
-adb shell input swipe 800 700 640 700 1200; sleep 2; snap s2-slight
-tapt "Snooze"; sleep 2; snap s3-snooze
+adb shell cmd notification post -S bigtext -t "Priya" t1 "Flat number is B-204, gate code 4471" >> $L 2>&1
+adb shell cmd notification post -S bigtext -t "Cab" t2 "Your driver arrives in 5 min" >> $L 2>&1; sleep 2
+adb shell input swipe 540 5 540 1300 300; sleep 2
+adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1; adb pull /sdcard/u.xml /tmp/u.xml >/dev/null 2>&1
+python3 /tmp/find.py "Expand" > /tmp/xy; read X Y C K < /tmp/xy; echo "expand at $X $Y" >> $L; adb shell input tap $X $Y; sleep 2; snap n1-expanded
+python3 - <<'P2'
+P2
+adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1; adb pull /sdcard/u.xml /tmp/u.xml >/dev/null 2>&1
+python3 /tmp/find.py "Priya" > /tmp/xy; read X Y C K < /tmp/xy; echo "priya at $X $Y" >> $L
+adb shell input swipe 700 $Y 1060 $Y 200; sleep 2; snap n2-after-dismiss
+adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1; adb pull /sdcard/u.xml /tmp/u.xml >/dev/null 2>&1
+python3 /tmp/find.py "Cab" > /tmp/xy; read X Y C K < /tmp/xy; echo "cab at $X $Y" >> $L
+adb shell input swipe 800 $Y 620 $Y 2500; sleep 1; snap n3-slow-swipe
+tapt "Snooze"; snap n4-snooze-menu
 adb shell cmd statusbar collapse; home
-# 3 app pinning
-adb shell am start -a android.settings.SECURITY_SETTINGS; sleep 4; tapt "More security"; tapt "App pinning"; tapt "Use app pinning"; sleep 2; snap p1-on
-home; adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main; sleep 8; snap c1-chrome-first
+adb shell am start -a android.settings.NOTIFICATION_HISTORY; sleep 4; snap n5-history
+tapt "Shell"; sleep 2; snap n6-history-expanded
+# B app pinning
+home; adb shell am start -a android.settings.SECURITY_SETTINGS; sleep 4; tapt "More security"; tapt "App pinning"; tapt "Use app pinning"; sleep 2; tapt "OK"; sleep 2; snap p1-on
+home; adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main; sleep 6
+tapt "Use without an account"; sleep 3; snap c2-chrome-home
 adb shell input keyevent KEYCODE_APP_SWITCH; sleep 3; snap p2-overview
-tapt "Chrome"; sleep 2; snap p3-menu
-tapt "Pin"; sleep 3; snap p4-pinned-or-prompt
-adb shell input keyevent KEYCODE_HOME; sleep 2; snap p5-home-while-pinned
-adb shell input swipe 540 2200 540 1000 2500; sleep 3; snap p6-after-unpin-gesture
-# 4 youtube
-home; adb shell monkey -p com.google.android.youtube -c android.intent.category.LAUNCHER 1 >> $L 2>&1; sleep 10; snap y1-youtube-first
+adb shell input tap 540 190; sleep 2; snap p3-menu
+tapt "Pin"; sleep 3; snap p4-pinned
+adb shell input keyevent KEYCODE_HOME; sleep 2; snap p5-home-try
+adb shell input swipe 540 2300 540 1500 2500; sleep 3; snap p6-unpin-try
+# C chrome features: settings page text
+home; adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main; sleep 4
+adb shell am start -a android.intent.action.VIEW -d "chrome://flags" -p com.android.chrome; sleep 6; snap c3-flags
 ls -l out >> $L; cat $L
