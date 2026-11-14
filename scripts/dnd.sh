@@ -9,6 +9,11 @@ for m in re.finditer(r'text="([^"]*)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]
     if m.group(1)==t: print((int(m.group(2))+int(m.group(4)))//2,(int(m.group(3))+int(m.group(5)))//2);break
 P
  read X Y < /tmp/xy; echo "tap '$1' at $X $Y"; [ -n "$X" ] && adb shell input tap $X $Y; }
+adb shell settings put global hide_error_dialogs 1
+adb shell settings put global window_animation_scale 0.5
+sleep 60
+adb shell input keyevent KEYCODE_HOME; sleep 5
+tap_text "Wait" anr; sleep 2
 adb shell getprop ro.build.version.release > out/android-version.txt
 adb shell input keyevent KEYCODE_HOME; sleep 3
 adb shell "nohup screenrecord --time-limit 60 --size 720x1600 --bit-rate 6000000 /sdcard/dnd.mp4 >/dev/null 2>&1 &"
