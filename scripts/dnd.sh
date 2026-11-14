@@ -30,27 +30,24 @@ tapt(){ for i in 1 2 3 4; do adb shell uiautomator dump /sdcard/u.xml >/dev/null
  if [ -n "$X" ]; then adb shell input tap $X $Y; echo "tapped $1 at $X $Y" >> $L; sleep 3; return 0; fi
  adb shell input swipe 540 1800 540 800 300; sleep 2; done; echo "NOT FOUND: $1" >> $L; return 1; }
 home(){ adb shell input keyevent KEYCODE_HOME; sleep 2; }
-# pinning complete
-adb shell am start -a android.settings.SECURITY_SETTINGS; sleep 4; tapt "More security"; tapt "App pinning"; tapt "Use app pinning"; sleep 2; tapt "OK"; sleep 2
-home; adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main; sleep 5
+# Gboard clipboard
+adb shell am start -a android.settings.INPUT_METHOD_SETTINGS; sleep 4; snap g1-input
+tapt "Gboard"; sleep 3; snap g2-after-gboard
+tapt "Gboard"; sleep 3; snap g3
+tapt "Clipboard"; sleep 3; snap g4-clipboard
+tapt "Preferences"; sleep 3; snap g5-prefs
+# Chrome: dismiss welcome, flags
+home; adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main; sleep 6
+tapt "Use without an account"; sleep 3; tapt "No thanks"; sleep 2; snap c1-home
+tapt "Search or type web address"; sleep 2; adb shell input text "chrome://flags"; adb shell input keyevent KEYCODE_ENTER; sleep 6; snap c2-flags
+adb shell input text "x"; snap c3-after
+# capped pin attempt
+home; adb shell am start -a android.settings.SECURITY_SETTINGS; sleep 4; tapt "More security"; tapt "App pinning"; tapt "Use app pinning"; sleep 2; tapt "OK"; sleep 2
+home; adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main; sleep 4
 adb shell input keyevent KEYCODE_APP_SWITCH; sleep 3
-adb shell input tap 540 265; sleep 2; tapt "Pin"; sleep 3; snap q1-pin-dialog
-tapt "Got it"; sleep 2; snap q2-pinned
-adb shell input keyevent KEYCODE_HOME; sleep 2; snap q3-home-while-pinned
-adb shell input swipe 540 2399 540 1400 400; sleep 3; snap q4-swipe-up
+adb shell input tap 540 265; sleep 2; tapt "Pin"; sleep 3; adb shell input tap 855 2305; sleep 2; snap q2-pinned
+adb shell dumpsys activity activities | grep -iE 'mLockTaskModeState' | head -2 >> $L
+adb shell input keyevent KEYCODE_HOME; sleep 2; snap q3-home-try
 adb shell input swipe 540 2399 540 1500 2500; sleep 3; snap q5-swipe-hold
-adb shell cmd overlay enable com.android.internal.systemui.navbar.threebutton; sleep 5; snap q6-3button
-adb shell input swipe 200 2330 200 2330 3000; sleep 3; snap q7-longpress-back
-adb shell input swipe 540 2330 540 2330 3000; sleep 3; snap q8-longpress-home
-adb shell dumpsys activity activities | grep -iE 'lockTaskMode|mLockTaskModeState' | head -3 >> $L
-# gboard clipboard setting
-home; adb shell am start -a android.settings.INPUT_METHOD_SETTINGS; sleep 4; snap g1-input
-tapt "On-screen keyboard"; sleep 2; snap g2-onscreen
-tapt "Gboard"; sleep 3; snap g3-gboard
-tapt "Clipboard"; sleep 2; snap g4-clipboard
-# chrome typed url
-home; adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main; sleep 5
-tapt "Search or type web address"; sleep 2; adb shell input text "chrome://flags"; adb shell input keyevent KEYCODE_ENTER; sleep 6; snap h1-flags
-# play store
-home; adb shell monkey -p com.android.vending -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; sleep 8; snap v1-playstore
+adb shell dumpsys activity activities | grep -iE 'mLockTaskModeState' | head -2 >> $L
 ls -l out >> $L; cat $L
