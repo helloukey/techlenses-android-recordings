@@ -29,6 +29,8 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: false
+          cores: 4
+          ram-size: 4096M
           script: bash scripts/${{ inputs.script }}
       - uses: actions/upload-artifact@v4
         if: always()
