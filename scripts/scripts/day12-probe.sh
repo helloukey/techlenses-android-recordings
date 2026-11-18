@@ -51,11 +51,15 @@ adb shell input keyevent KEYCODE_APP_SWITCH; sleep 3; snap p5-recents
 adb shell input tap 540 270; sleep 3; snap p6-app-menu
 taptext 'Pin' || taptext 'Pin app' || true
 snap p7-pin-confirm
-taptext 'Got it' || taptext 'OK' || true
+taptext 'Got it' || taptext 'OK' || adb shell input tap 860 2305
+sleep 4
 snap p8-pinned
 adb shell input keyevent KEYCODE_HOME; sleep 3; snap p9-home-while-pinned
+adb shell dumpsys activity activities | grep -i -A6 locktask >> out/pin-state.txt
 # Correct gesture-navigation unpin interaction.
 adb shell input swipe 540 2350 540 1000 2200; sleep 4; snap p10-unpin
+adb shell input swipe 540 2370 540 600 1800
+sleep 3
 # Privacy dashboard path through the security hub.
 go privacy android.settings.SECURITY_SETTINGS
 scrolltap 'Privacy' || true
