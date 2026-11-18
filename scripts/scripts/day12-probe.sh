@@ -33,29 +33,30 @@ taptext(){
 }
 go(){ adb shell input keyevent KEYCODE_HOME; adb shell am force-stop com.android.settings; adb shell am start -a "$2" >> "$L" 2>&1; sleep 4; snap "$1"; }
 scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
-# Chrome public-document PDF qualification. No account or permission grants.
-adb shell am start -a android.intent.action.VIEW -d 'https://example.com' com.android.chrome >> "$L" 2>&1
-sleep 8;snap c0-start
+# Personal dictionary qualification, generic demo text only.
+adb shell ime list -s >> "$L"
+adb shell am start -a android.settings.USER_DICTIONARY_SETTINGS >> "$L" 2>&1
+sleep 5;snap g0-dictionary
 taptext 'Wait' || true
-sleep 12;snap c1-first
-# Only skip sign-in/onboarding choices; no accepting app permissions.
-taptext 'Use without an account' || taptext 'No thanks' || true
-sleep 4;snap c2-after-choice
-taptext 'No thanks' || true
-sleep 3;snap c3-page
-taptext 'More options' || true
-snap c4-menu
-taptext $'Share\u2026' || true
-snap c5-share
-scrolltap 'Print' || true
-snap c6-print
-taptext 'Save as PDF' || true
-snap c7-destination
-taptext 'Save to PDF' || taptext 'Save as PDF' || taptext 'Save' || true
-snap c8-save
-taptext 'Save' || true
-sleep 4;snap c9-saved
-adb shell find /sdcard/Download -maxdepth 1 -type f > out/downloads.txt
-for f in $(adb shell find /sdcard/Download -maxdepth 1 -name '*.pdf' | tr -d '\r'); do adb pull "$f" out/; done
-# Stop unless the actual print/save UI is present. No external sending.
-adb shell find /sdcard/Download -maxdepth 1 -type f > out/downloads.txt
+sleep 8;snap g1-dictionary
+taptext 'For all languages' || taptext 'All languages' || taptext 'English (United States)' || true
+snap g2-language
+taptext 'Add' || taptext 'Add word' || true
+snap g3-add
+# Fill visible standard dictionary fields using UI labels only.
+taptext 'Type a word' || true
+adb shell input text 'Thanks%sfor%syour%stime'
+snap g4-word
+taptext 'Shortcut' || true
+adb shell input text 'tltx'
+snap g5-shortcut
+adb shell input keyevent KEYCODE_BACK
+adb shell input keyevent KEYCODE_BACK
+snap g6-list
+adb shell am start -a android.settings.SETTINGS >> "$L" 2>&1
+sleep 3;snap g7-settings
+taptext 'Search settings' || taptext 'Search' || true
+adb shell input text 'tltx'
+snap g8-suggestion
+taptext 'Thanks for your time' || true
+snap g9-result
