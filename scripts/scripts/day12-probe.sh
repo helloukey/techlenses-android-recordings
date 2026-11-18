@@ -58,7 +58,13 @@ sleep 3;snap g7-settings
 taptext 'Search settings' || taptext 'Search' || true
 adb shell input text 'tltx'
 snap g8-suggestion
-taptext 'Thanks for your time' || true
+# The suggestion is drawn on the keyboard canvas, absent from accessibility XML.
+# Capture35 actual screenshot: center suggestion at x~56%, y~66% of display.
+sleep 3
+SIZE=$(adb shell wm size | grep -o '[0-9]*x[0-9]*' | head -1)
+W=${SIZE%x*}; H=${SIZE#*x}
+adb shell input tap $((W*56/100)) $((H*66/100))
+sleep 3
 snap g9-result
 adb shell input keyevent KEYCODE_BACK
 adb shell input keyevent KEYCODE_BACK
