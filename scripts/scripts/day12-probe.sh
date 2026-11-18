@@ -33,28 +33,24 @@ taptext(){
 }
 go(){ adb shell input keyevent KEYCODE_HOME; adb shell am force-stop com.android.settings; adb shell am start -a "$2" >> "$L" 2>&1; sleep 4; snap "$1"; }
 scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
-# Chrome Find in page qualification. Public Chromium documentation only.
-adb shell am start -a android.intent.action.VIEW -d 'https://www.chromium.org/user-experience/find-in-page/' com.android.chrome >> "$L" 2>&1
-sleep 8;snap f0-start
+# Notification snooze qualification with an explicitly labelled harmless test notice.
+adb shell am start -a android.settings.NOTIFICATION_SETTINGS >> "$L" 2>&1
+sleep 5;snap n0-settings
 taptext 'Wait' || true
-sleep 12;snap f1-first
-taptext 'Use without an account' || taptext 'No thanks' || true
-sleep 4;snap f2-choice
-taptext 'No thanks' || true
-sleep 8;snap f3-page
-taptext 'More options' || true
-snap f4-menu
-taptext 'Find in page' || true
-snap f5-find
-adb shell input text 'find'
-sleep 3;snap f6-match
-taptext 'Next result' || taptext 'Next' || true
-snap f7-next
-# Replace the four-character demonstration query without changing the page.
-taptext 'Find in page' || true
-adb shell input keyevent KEYCODE_MOVE_END
-for i in 1 2 3 4; do adb shell input keyevent KEYCODE_DEL; done
-adb shell input text 'zzztlmissing'
-sleep 3;snap f8-absent
-taptext 'Close find in page' || taptext 'Close' || true
-snap f9-exit
+sleep 8;snap n1-settings
+scrolltap 'Allow notification snoozing' || true
+snap n2-enabled
+adb shell cmd notification post -t 'Tech Lenses demo' techlenses-demo 'Harmless sample notification. Nothing to reply to.' >> "$L" 2>&1
+sleep 3
+adb shell cmd statusbar expand-notifications
+sleep 3;snap n3-notification
+taptext 'Expand' || true
+snap n4-expanded
+taptext 'Snooze' || taptext 'Snooze notification' || true
+snap n5-snoozed
+taptext '1 hour' || true
+snap n6-duration
+taptext '15 minutes' || true
+snap n7-selected
+taptext 'Undo' || true
+snap n8-undo
