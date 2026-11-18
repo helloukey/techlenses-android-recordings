@@ -41,12 +41,14 @@ scrolltap 'App pinning' || scrolltap 'Screen pinning' || true
 snap p2-pinning-off
 taptext 'Use app pinning' || taptext 'Use screen pinning' || true
 snap p3-pinning-on
+taptext 'OK' || true
+snap p3b-enabled
 adb shell input keyevent KEYCODE_HOME
 adb shell am start -n com.google.android.deskclock/com.android.deskclock.DeskClock >> "$L" 2>&1
 sleep 4; snap p4-clock
 adb shell input keyevent KEYCODE_APP_SWITCH; sleep 3; snap p5-recents
 # Recent-app icon coordinate comes from the prior successful split-screen layout.
-adb shell input tap 540 410; sleep 3; snap p6-app-menu
+adb shell input tap 540 270; sleep 3; snap p6-app-menu
 taptext 'Pin' || taptext 'Pin app' || true
 snap p7-pin-confirm
 taptext 'Got it' || taptext 'OK' || true
@@ -66,7 +68,10 @@ scrolltap 'Magnification' || true
 snap m1-settings
 taptext 'Magnification shortcut' || true
 snap m2-shortcut
-taptext 'Allow' || taptext 'OK' || true
+taptext 'Tap accessibility button' || true
+taptext 'Save' || true
+snap m2b-saved
+taptext 'Got it' || taptext 'Allow' || taptext 'OK' || true
 snap m3-shortcut-on
 adb shell input keyevent KEYCODE_HOME; sleep 3; snap m4-home
 # accessibility floating shortcut normally appears at the right screen edge.
