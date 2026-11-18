@@ -33,45 +33,28 @@ taptext(){
 }
 go(){ adb shell input keyevent KEYCODE_HOME; adb shell am force-stop com.android.settings; adb shell am start -a "$2" >> "$L" 2>&1; sleep 4; snap "$1"; }
 scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
-# Personal dictionary qualification, generic demo text only.
-adb shell ime list -s >> "$L"
-adb shell am start -a android.settings.USER_DICTIONARY_SETTINGS >> "$L" 2>&1
-sleep 5;snap g0-dictionary
+# Chrome Find in page qualification. Public Chromium documentation only.
+adb shell am start -a android.intent.action.VIEW -d 'https://www.chromium.org/user-experience/find-in-page/' com.android.chrome >> "$L" 2>&1
+sleep 8;snap f0-start
 taptext 'Wait' || true
-sleep 8;snap g1-dictionary
-taptext 'For all languages' || taptext 'All languages' || taptext 'English (United States)' || true
-snap g2-language
-taptext 'Add' || taptext 'Add word' || true
-snap g3-add
-# Fill visible standard dictionary fields using UI labels only.
-taptext 'Type a word' || true
-adb shell input text 'Thanks%sfor%syour%stime'
-snap g4-word
-taptext 'Optional shortcut' || true
-adb shell input text 'tltx'
-snap g5-shortcut
-adb shell input keyevent KEYCODE_BACK
-adb shell input keyevent KEYCODE_BACK
-snap g6-list
-adb shell am start -a android.settings.SETTINGS >> "$L" 2>&1
-sleep 3;snap g7-settings
-taptext 'Search settings' || taptext 'Search' || true
-adb shell input text 'tltx'
-snap g8-suggestion
-# The suggestion is drawn on the keyboard canvas, absent from accessibility XML.
-# Capture35 actual screenshot: center suggestion at x~56%, y~66% of display.
-sleep 3
-SIZE=$(adb shell wm size | grep -o '[0-9]*x[0-9]*' | head -1)
-W=${SIZE%x*}; H=${SIZE#*x}
-adb shell input tap $((W*56/100)) $((H*66/100))
-sleep 3
-snap g9-result
-adb shell input keyevent KEYCODE_BACK
-adb shell input keyevent KEYCODE_BACK
-adb shell am start -a android.settings.USER_DICTIONARY_SETTINGS >> "$L" 2>&1
-sleep 3;taptext 'English (United States)' || true
-snap g10-saved-list
-taptext 'Thanks for your time' || true
-snap g11-edit
-taptext 'Delete' || true
-snap g12-deleted
+sleep 12;snap f1-first
+taptext 'Use without an account' || taptext 'No thanks' || true
+sleep 4;snap f2-choice
+taptext 'No thanks' || true
+sleep 8;snap f3-page
+taptext 'More options' || true
+snap f4-menu
+taptext 'Find in page' || true
+snap f5-find
+adb shell input text 'find'
+sleep 3;snap f6-match
+taptext 'Next result' || taptext 'Next' || true
+snap f7-next
+# Replace the four-character demonstration query without changing the page.
+taptext 'Find in page' || true
+adb shell input keyevent KEYCODE_MOVE_END
+for i in 1 2 3 4; do adb shell input keyevent KEYCODE_DEL; done
+adb shell input text 'zzztlmissing'
+sleep 3;snap f8-absent
+taptext 'Close find in page' || taptext 'Close' || true
+snap f9-exit
