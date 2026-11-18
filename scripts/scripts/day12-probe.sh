@@ -32,6 +32,7 @@ taptext(){
  if [ -n "$XY" ]; then echo "TAP $1 $XY" >> out/taps.txt; adb shell input tap $XY; sleep 3; else echo "NOT FOUND $1" >> "$L"; return 1; fi
 }
 go(){ adb shell input keyevent KEYCODE_HOME; adb shell am force-stop com.android.settings; adb shell am start -a "$2" >> "$L" 2>&1; sleep 4; snap "$1"; }
+scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
 # Capture magnification setup plus actual visible magnification.
 go accessibility android.settings.ACCESSIBILITY_SETTINGS
 scrolltap 'Magnification' || true
@@ -54,35 +55,3 @@ adb shell input keyevent KEYCODE_HOME
 taptext 'Magnification' || taptext 'Accessibility' || true
 sleep 2; snap m7-exit
 adb shell am force-stop com.android.settings
-# Correctly scroll to exact labels before tapping.
-scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
-go security android.settings.SECURITY_SETTINGS
-scrolltap 'More security & privacy' || true
-snap p1-more-security
-scrolltap 'App pinning' || scrolltap 'Screen pinning' || true
-snap p2-pinning-off
-taptext 'Use app pinning' || taptext 'Use screen pinning' || true
-snap p3-pinning-on
-taptext 'OK' || true
-snap p3b-enabled
-adb shell input keyevent KEYCODE_HOME
-adb shell am start -n com.google.android.deskclock/com.android.deskclock.DeskClock >> "$L" 2>&1
-sleep 4; snap p4-clock
-adb shell input keyevent KEYCODE_APP_SWITCH; sleep 3; snap p5-recents
-# Recent-app icon coordinate comes from the prior successful split-screen layout.
-adb shell input tap 540 270; sleep 3; snap p6-app-menu
-taptext 'Pin' || taptext 'Pin app' || true
-snap p7-pin-confirm
-taptext 'Got it' || taptext 'OK' || adb shell input tap 860 2305
-sleep 4
-snap p8-pinned
-adb shell input keyevent KEYCODE_HOME; sleep 3; snap p9-home-while-pinned
-adb shell dumpsys activity activities | grep -i -A6 locktask >> out/pin-state.txt
-# Correct gesture-navigation unpin interaction.
-adb shell input motionevent DOWN 540 2390
-adb shell input motionevent MOVE 540 1700
-sleep 3
-adb shell input motionevent UP 540 1700
-sleep 4; snap p10-unpin
-adb shell input swipe 540 2370 540 600 1800
-sleep 3
