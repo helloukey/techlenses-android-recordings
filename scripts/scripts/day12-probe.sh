@@ -47,7 +47,7 @@ snap g3-add
 taptext 'Type a word' || true
 adb shell input text 'Thanks%sfor%syour%stime'
 snap g4-word
-taptext 'Shortcut' || true
+taptext 'Optional shortcut' || true
 adb shell input text 'tltx'
 snap g5-shortcut
 adb shell input keyevent KEYCODE_BACK
@@ -60,3 +60,12 @@ adb shell input text 'tltx'
 snap g8-suggestion
 taptext 'Thanks for your time' || true
 snap g9-result
+adb shell input keyevent KEYCODE_BACK
+adb shell input keyevent KEYCODE_BACK
+adb shell am start -a android.settings.USER_DICTIONARY_SETTINGS >> "$L" 2>&1
+sleep 3;taptext 'English (United States)' || true
+snap g10-saved-list
+taptext 'Thanks for your time' || true
+snap g11-edit
+taptext 'Delete' || true
+snap g12-deleted
