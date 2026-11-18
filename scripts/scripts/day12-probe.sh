@@ -39,16 +39,17 @@ sleep 5;snap n0-settings
 taptext 'Wait' || true
 sleep 8;snap n1-settings
 scrolltap 'Allow notification snoozing' || true
-snap n2-enabled
-adb shell cmd notification post -t 'Tech Lenses demo' techlenses-demo 'Harmless sample notification. Nothing to reply to.' >> "$L" 2>&1
+adb shell input swipe 540 1800 540 1100 350
+sleep 2;snap n2-enabled
+adb shell cmd notification post -t "'Tech Lenses demo'" techlenses-demo "'Harmless sample notification. Nothing to reply to.'" >> "$L" 2>&1
 sleep 3
 adb shell cmd statusbar expand-notifications
 sleep 3;snap n3-notification
 taptext 'Expand' || true
 snap n4-expanded
-taptext 'Snooze' || taptext 'Snooze notification' || true
+taptext 'notification snooze options' || true
 snap n5-snoozed
-taptext '1 hour' || true
+taptext '1 hour' || taptext 'Snoozed for 1 hour' || true
 snap n6-duration
 taptext '15 minutes' || true
 snap n7-selected
