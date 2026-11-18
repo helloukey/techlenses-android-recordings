@@ -45,13 +45,17 @@ taptext 'No thanks' || true
 sleep 3;snap c3-page
 taptext 'More options' || true
 snap c4-menu
-scrolltap 'Share...' || taptext 'Share' || true
+taptext $'Share\u2026' || true
 snap c5-share
 scrolltap 'Print' || true
 snap c6-print
 taptext 'Save as PDF' || true
 snap c7-destination
-taptext 'Save to PDF' || taptext 'Save as PDF' || true
+taptext 'Save to PDF' || taptext 'Save as PDF' || taptext 'Save' || true
 snap c8-save
+taptext 'Save' || true
+sleep 4;snap c9-saved
+adb shell find /sdcard/Download -maxdepth 1 -type f > out/downloads.txt
+for f in $(adb shell find /sdcard/Download -maxdepth 1 -name '*.pdf' | tr -d '\r'); do adb pull "$f" out/; done
 # Stop unless the actual print/save UI is present. No external sending.
 adb shell find /sdcard/Download -maxdepth 1 -type f > out/downloads.txt
