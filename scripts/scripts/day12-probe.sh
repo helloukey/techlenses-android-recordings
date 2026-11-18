@@ -47,11 +47,13 @@ snap m3-shortcut-on
 adb shell input keyevent KEYCODE_HOME; sleep 3; snap m4-home
 # accessibility floating shortcut normally appears at the right screen edge.
 adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1; adb pull /sdcard/u.xml /tmp/u.xml >/dev/null 2>&1
-for label in 'Magnification' 'Accessibility' 'Accessibility button'; do taptext "$label" && break; done
+adb shell input tap 1015 1770
+sleep 3
 snap m5-activated
 adb shell input tap 400 1000; sleep 3; snap m6-zoomed
 adb shell input keyevent KEYCODE_HOME
 
-taptext 'Magnification' || taptext 'Accessibility' || true
+adb shell input tap 1015 1770
+sleep 3
 sleep 2; snap m7-exit
 adb shell am force-stop com.android.settings
