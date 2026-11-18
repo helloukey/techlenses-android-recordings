@@ -33,27 +33,25 @@ taptext(){
 }
 go(){ adb shell input keyevent KEYCODE_HOME; adb shell am force-stop com.android.settings; adb shell am start -a "$2" >> "$L" 2>&1; sleep 4; snap "$1"; }
 scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
-# Capture magnification setup plus actual visible magnification.
-go accessibility android.settings.ACCESSIBILITY_SETTINGS
-scrolltap 'Magnification' || true
-snap m1-settings
-taptext 'Magnification shortcut' || true
-snap m2-shortcut
-taptext 'Tap accessibility button' || true
-taptext 'Save' || true
-snap m2b-saved
-taptext 'Got it' || taptext 'Allow' || taptext 'OK' || true
-snap m3-shortcut-on
-adb shell input keyevent KEYCODE_HOME; sleep 3; snap m4-home
-# accessibility floating shortcut normally appears at the right screen edge.
-adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1; adb pull /sdcard/u.xml /tmp/u.xml >/dev/null 2>&1
-adb shell input tap 1015 1770
-sleep 3
-snap m5-activated
-adb shell input tap 400 1000; sleep 3; snap m6-zoomed
-adb shell input keyevent KEYCODE_HOME
-
-adb shell input tap 1015 1770
-sleep 3
-sleep 2; snap m7-exit
-adb shell am force-stop com.android.settings
+# Readability probe: all changes through Android Settings UI.
+go a0-accessibility android.settings.ACCESSIBILITY_SETTINGS
+scrolltap 'Display size and text' || true
+snap r1-default
+# Sliders expose increase/decrease buttons in Android 14.
+taptext 'Increase font size' || taptext 'Increase' || true
+snap r2-font
+# Log slider structure before choosing further changes.
+taptext 'Bold text' || true
+snap r3-bold
+adb shell input keyevent KEYCODE_BACK; sleep 3
+snap r4-accessibility-after
+scrolltap 'Display size and text' || true
+snap r5-return
+# Restore using the visible Reset settings flow, not a hidden system write.
+scrolltap 'Reset settings' || true
+snap r6-reset-prompt
+taptext 'Reset' || taptext 'Reset settings' || true
+snap r7-reset
+adb shell input keyevent KEYCODE_BACK; sleep 3
+snap r8-accessibility-restored
+adb shell pm list packages > out/packages.txt
