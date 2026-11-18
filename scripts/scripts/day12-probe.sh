@@ -37,10 +37,26 @@ scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swip
 go a0-accessibility android.settings.ACCESSIBILITY_SETTINGS
 scrolltap 'Display size and text' || true
 snap r1-default
-# Sliders expose increase/decrease buttons in Android 14.
-taptext 'Increase font size' || taptext 'Increase' || true
+# Font-size increase is the first Make larger node; display is the second.
+tapnth(){
+ adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1
+ adb pull /sdcard/u.xml /tmp/u.xml >/dev/null 2>&1
+ XY=$(python3 - "$1" "$2" <<'CODE'
+import sys,re,xml.etree.ElementTree as ET
+nodes=[n for n in ET.parse('/tmp/u.xml').getroot().iter('node') if any(sys.argv[1]==n.get(k,'') for k in ('text','content-desc'))]
+if len(nodes)>int(sys.argv[2]):
+ n=nodes[int(sys.argv[2])];x,y,xx,yy=map(int,re.findall(r'\d+',n.get('bounds','')));print((x+xx)//2,(y+yy)//2)
+CODE
+)
+ if [ -n "$XY" ]; then echo "TAPN $1 $2 $XY" >> out/taps.txt;adb shell input tap $XY;sleep 3; else echo "NOT FOUND $1 $2" >> "$L";fi
+}
+tapnth 'Make larger' 0
+tapnth 'Make larger' 0
 snap r2-font
-# Log slider structure before choosing further changes.
+adb shell input keyevent KEYCODE_BACK;sleep 3;snap r2b-font-applied
+scrolltap 'Display size and text' || true
+tapnth 'Make larger' 1
+snap r2c-display
 taptext 'Bold text' || true
 snap r3-bold
 adb shell input keyevent KEYCODE_BACK; sleep 3
