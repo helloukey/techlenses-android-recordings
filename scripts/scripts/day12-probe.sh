@@ -32,31 +32,46 @@ taptext(){
  if [ -n "$XY" ]; then echo "TAP $1 $XY" >> out/taps.txt; adb shell input tap $XY; sleep 3; else echo "NOT FOUND $1" >> "$L"; return 1; fi
 }
 go(){ adb shell input keyevent KEYCODE_HOME; adb shell am force-stop com.android.settings; adb shell am start -a "$2" >> "$L" 2>&1; sleep 4; snap "$1"; }
+# Correctly scroll to exact labels before tapping.
+scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
 go security android.settings.SECURITY_SETTINGS
-adb shell input swipe 540 1800 540 700 350; sleep 2; snap security-scroll
-taptext 'More security & privacy' || taptext 'More security settings' || true
-snap more-security
-adb shell input swipe 540 1800 540 700 350; sleep 2; snap more-security-scroll
-taptext 'App pinning' || taptext 'Screen pinning' || true
-snap pinning-settings
-# Only toggle if a pinning screen was actually reached.
-if grep -qiE 'App pinning|Screen pinning' /tmp/u.xml; then
- taptext 'Use app pinning' || taptext 'Use screen pinning' || true
- snap pinning-on
-fi
-go gestures android.settings.GESTURE_SETTINGS
-snap gestures
-# A second direct route is only a Settings deep link, not a feature mutation.
-adb shell am start -n com.android.settings/.Settings\$OneHandedSettingsActivity >> "$L" 2>&1; sleep 4; snap one-handed
-# Accessibility index and specific features.
+scrolltap 'More security & privacy' || true
+snap p1-more-security
+scrolltap 'App pinning' || scrolltap 'Screen pinning' || true
+snap p2-pinning-off
+taptext 'Use app pinning' || taptext 'Use screen pinning' || true
+snap p3-pinning-on
+adb shell input keyevent KEYCODE_HOME
+adb shell am start -n com.google.android.deskclock/com.android.deskclock.DeskClock >> "$L" 2>&1
+sleep 4; snap p4-clock
+adb shell input keyevent KEYCODE_APP_SWITCH; sleep 3; snap p5-recents
+# Recent-app icon coordinate comes from the prior successful split-screen layout.
+adb shell input tap 540 410; sleep 3; snap p6-app-menu
+taptext 'Pin' || taptext 'Pin app' || true
+snap p7-pin-confirm
+taptext 'Got it' || taptext 'OK' || true
+snap p8-pinned
+adb shell input keyevent KEYCODE_HOME; sleep 3; snap p9-home-while-pinned
+# Correct gesture-navigation unpin interaction.
+adb shell input swipe 540 2350 540 1000 2200; sleep 4; snap p10-unpin
+# Privacy dashboard path through the security hub.
+go privacy android.settings.SECURITY_SETTINGS
+scrolltap 'Privacy' || true
+snap v1-privacy
+scrolltap 'Privacy dashboard' || true
+snap v2-dashboard
+# Capture magnification setup plus actual visible magnification.
 go accessibility android.settings.ACCESSIBILITY_SETTINGS
-adb shell input swipe 540 1800 540 700 350; sleep 2; snap accessibility-scroll
-taptext 'Magnification' || true
-snap magnification
-adb shell am start -a android.settings.ACCESSIBILITY_SETTINGS >> "$L" 2>&1; sleep 4
-taptext 'Extra dim' || true
-snap extra-dim
-go privacy android.settings.PRIVACY_SETTINGS
-taptext 'Privacy dashboard' || true
-snap privacy-dashboard
+scrolltap 'Magnification' || true
+snap m1-settings
+taptext 'Magnification shortcut' || true
+snap m2-shortcut
+taptext 'Allow' || taptext 'OK' || true
+snap m3-shortcut-on
+adb shell input keyevent KEYCODE_HOME; sleep 3; snap m4-home
+# accessibility floating shortcut normally appears at the right screen edge.
+adb shell uiautomator dump /sdcard/u.xml >/dev/null 2>&1; adb pull /sdcard/u.xml /tmp/u.xml >/dev/null 2>&1
+for label in 'Magnification' 'Accessibility' 'Accessibility button'; do taptext "$label" && break; done
+snap m5-activated
+adb shell input tap 400 1000; sleep 3; snap m6-zoomed
 adb shell input keyevent KEYCODE_HOME
