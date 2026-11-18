@@ -35,7 +35,9 @@ go(){ adb shell input keyevent KEYCODE_HOME; adb shell am force-stop com.android
 scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
 # Chrome public-document PDF qualification. No account or permission grants.
 adb shell am start -a android.intent.action.VIEW -d 'https://example.com' com.android.chrome >> "$L" 2>&1
-sleep 8;snap c1-first
+sleep 8;snap c0-start
+taptext 'Wait' || true
+sleep 12;snap c1-first
 # Only skip sign-in/onboarding choices; no accepting app permissions.
 taptext 'Use without an account' || taptext 'No thanks' || true
 sleep 4;snap c2-after-choice
