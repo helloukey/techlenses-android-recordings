@@ -31,26 +31,21 @@ xy(){
  python3 /tmp/find.py "$1"
 }
 taptext(){ XY=$(xy "$1"); if [ -n "$XY" ]; then echo "TAP $1 $XY" >> out/taps.txt; adb shell input tap $XY; sleep 3; else echo "NOT FOUND $1" >> "$L"; return 1; fi; }
-# Record the visible dark-theme path and inspect its schedule menu.
+# Inspect screen-timeout durations through visible controls only.
 adb shell am force-stop com.android.settings
 adb shell input keyevent KEYCODE_HOME
 adb shell am start -a android.settings.DISPLAY_SETTINGS >> "$L" 2>&1
 sleep 4
-adb shell screenrecord --bit-rate 5000000 --time-limit 150 /sdcard/display-demo.mp4 &
+adb shell screenrecord --bit-rate 5000000 --time-limit 150 /sdcard/timeout-demo.mp4 &
 REC=$!
-snap d0-display
-if taptext 'Dark theme';then
- snap d1-dark
- if taptext 'Use Dark theme';then
-  snap d2-dark-on
-  taptext 'Use Dark theme' || true
-  snap d3-dark-restored
+snap t0-display
+if taptext 'Screen timeout';then
+ snap t1-choices
+ if taptext '30 seconds';then
+  snap t2-thirty-seconds
+  if taptext '2 minutes';then snap t3-two-minutes;fi
  fi
- if taptext 'Schedule';then snap d4-schedule-options;adb shell input keyevent KEYCODE_BACK;fi
 fi
-adb shell input keyevent KEYCODE_BACK
-sleep 3;snap f0-display-returned
-if taptext 'Display size and text';then snap f1-size-and-text;fi
 adb shell pkill -2 screenrecord || true
 wait "$REC" || true
-adb pull /sdcard/display-demo.mp4 out/display-demo.mp4 >> "$L" 2>&1
+adb pull /sdcard/timeout-demo.mp4 out/timeout-demo.mp4 >> "$L" 2>&1
