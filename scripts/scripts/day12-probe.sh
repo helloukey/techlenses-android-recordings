@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Public Android 14 qualification using generic demo text only.
+# Android 14 generic demonstration captures. No private accounts or messages.
 set -u
 mkdir -p out
 L=out/log.txt
@@ -25,44 +25,54 @@ print(' | '.join(v for n in ET.parse('/tmp/u.xml').getroot().iter('node') for k 
 PY
  adb exec-out screencap -p > "out/$1.png"
 }
-taptext(){
+xy(){
  adb shell uiautomator dump /sdcard/u.xml > /tmp/dump-result.txt 2>&1
  adb pull /sdcard/u.xml /tmp/u.xml > /tmp/pull-result.txt 2>&1
- XY=$(python3 /tmp/find.py "$1")
- if [ -n "$XY" ]; then echo "TAP $1 $XY" >> out/taps.txt; adb shell input tap $XY; sleep 3; else echo "NOT FOUND $1" >> "$L"; return 1; fi
+ python3 /tmp/find.py "$1"
 }
-scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
-adb shell am start -a android.settings.PRIVACY_SETTINGS >> "$L" 2>&1
-sleep 7;snap p0-security
-scrolltap 'Privacy' || true
-snap p1-privacy
-scrolltap 'Camera access' || true
-snap p2-camera-off
-taptext 'Camera access' || true
-snap p3-camera-restored
-taptext 'Microphone access' || true
-snap p4-mic-off
-taptext 'Microphone access' || true
-snap p5-mic-restored
-adb shell input keyevent KEYCODE_HOME
-adb shell am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:com.google.android.youtube >> "$L" 2>&1
-sleep 5;snap a0-youtube
-adb shell input swipe 540 1800 540 700 350
-sleep 2;snap a1-scrolled
-taptext 'Open by default' || true
-snap a2-default
-taptext 'Open supported links' || true
-snap a3-off
-taptext 'Open supported links' || true
-snap a4-restored
-taptext '4 verified links' || true
-snap a5-links
-adb shell input keyevent KEYCODE_HOME
+taptext(){ XY=$(xy "$1"); if [ -n "$XY" ]; then echo "TAP $1 $XY" >> out/taps.txt; adb shell input tap $XY; sleep 3; else echo "NOT FOUND $1" >> "$L"; return 1; fi; }
+dragtext(){
+ A=$(xy "$1");B=$(xy "$2"); if [ -z "$A" ] || [ -z "$B" ];then return 1;fi
+ read -r X Y <<< "$A"; read -r U V <<< "$B"
+ echo "DRAG $1 $A TO $2 $B" >> out/taps.txt
+ adb shell input touchscreen motionevent DOWN "$X" "$Y";sleep 1
+ python3 - "$X" "$Y" "$U" "$V" > /tmp/moves.txt <<'PY'
+import sys
+x,y,u,v=map(int,sys.argv[1:])
+for i in range(1,13):print(round(x+(u-x)*i/12),round(y+(v-y)*i/12))
+PY
+ while read -r XX YY;do adb shell input touchscreen motionevent MOVE "$XX" "$YY";sleep .08;done < /tmp/moves.txt
+ adb shell input touchscreen motionevent UP "$U" "$V";sleep 4
+}
 adb shell cmd statusbar expand-settings
-sleep 3;snap q0-panel
-taptext 'Edit order of settings.' || true
-snap q1-edit
-adb shell input swipe 540 1800 540 700 400
-sleep 2;snap q2-edit
-adb shell input swipe 540 1800 540 700 400
-sleep 2;snap q3-edit
+sleep 4;snap q0-panel
+if taptext 'Edit order of settings.';then
+ snap q1-before
+ dragtext 'Bluetooth' 'Internet' || true
+ snap q2-reordered
+ adb shell input keyevent KEYCODE_BACK
+ adb shell cmd statusbar collapse
+ adb shell cmd statusbar expand-settings
+ sleep 3
+ adb shell input swipe 150 900 950 900 450
+ adb shell input swipe 150 900 950 900 450
+ sleep 2;snap q3-panel-reordered
+ if taptext 'Edit order of settings.';then
+  dragtext 'Internet' 'Bluetooth' || true
+  snap q4-restored
+  adb shell input keyevent KEYCODE_BACK
+  snap q5-exit
+ fi
+fi
+adb shell input keyevent KEYCODE_HOME
+adb shell cmd notification post -t 'Tech Lenses demo' tl-demo 'Harmless demo reminder' >> "$L" 2>&1
+adb shell cmd statusbar expand-notifications
+sleep 3;snap n0-notification
+XY=$(xy 'Tech Lenses demo')
+if [ -n "$XY" ];then adb shell input swipe $XY $XY 1200;sleep 3;snap n1-longpress;fi
+adb shell input keyevent KEYCODE_HOME
+adb shell am start -a android.settings.SOUND_SETTINGS >> "$L" 2>&1
+sleep 5;snap v0-sound
+adb shell input keyevent KEYCODE_HOME
+adb shell input keyevent KEYCODE_VOLUME_UP
+sleep 1;snap v1-volume
