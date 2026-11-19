@@ -43,8 +43,10 @@ SIZE=$(adb shell wm size | grep -o '[0-9]*x[0-9]*' | head -1)
 W=${SIZE%x*}; H=${SIZE#*x}
 adb shell input tap $((W*55/1000)) $((H*655/1000))
 sleep 3;snap c1-toolbar
-taptext 'Clipboard' || true
-snap c2-clipboard
+# Clipboard icon visibly centered at x50%, y65.5% in run41.
+adb shell input tap $((W*50/100)) $((H*655/1000))
+sleep 3;snap c2-clipboard
+# Use any accessible activation control if offered.
 taptext 'Turn on clipboard' || true
 snap c3-enabled
 adb shell input keyevent KEYCODE_BACK
@@ -52,3 +54,9 @@ adb shell input keyevent KEYCODE_BACK
 adb shell am start -a android.settings.ACCESSIBILITY_SETTINGS >> "$L" 2>&1
 sleep 3;taptext 'Magnification' || true
 snap m1-settings
+# Shortcut switch observed at x89%, y70% of the display.
+adb shell input tap $((W*89/100)) $((H*70/100))
+sleep 3;snap m2-shortcut
+# Follow only an actual approval label if present, capture remaining instructions.
+taptext 'Got it' || true
+snap m3-shortcut
