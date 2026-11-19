@@ -33,29 +33,36 @@ taptext(){
 }
 scrolltap(){ for i in 1 2 3 4; do taptext "$1" && return 0; adb shell input swipe 540 1800 540 700 350; sleep 2; done; return 1; }
 adb shell am start -a android.settings.PRIVACY_SETTINGS >> "$L" 2>&1
-sleep 5;taptext 'Wait' || true
-sleep 5;snap p0-privacy
-scrolltap 'More privacy settings' || true
-snap p1-more
-# Capture only labels actually present; no invisible toggle changes.
+sleep 7;snap p0-security
+scrolltap 'Privacy' || true
+snap p1-privacy
+scrolltap 'Camera access' || true
+snap p2-camera-off
 taptext 'Camera access' || true
-snap p2-camera
-taptext 'Camera access' || true
-snap p3-restored
-# App-link settings for the installed public YouTube app.
+snap p3-camera-restored
+taptext 'Microphone access' || true
+snap p4-mic-off
+taptext 'Microphone access' || true
+snap p5-mic-restored
 adb shell input keyevent KEYCODE_HOME
 adb shell am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:com.google.android.youtube >> "$L" 2>&1
 sleep 5;snap a0-youtube
-scrolltap 'Open by default' || true
-snap a1-default
+adb shell input swipe 540 1800 540 700 350
+sleep 2;snap a1-scrolled
+taptext 'Open by default' || true
+snap a2-default
 taptext 'Open supported links' || true
-snap a2-off
+snap a3-off
 taptext 'Open supported links' || true
-snap a3-restored
-# Native quick-settings controls and editor, read only.
+snap a4-restored
+taptext '4 verified links' || true
+snap a5-links
+adb shell input keyevent KEYCODE_HOME
 adb shell cmd statusbar expand-settings
-sleep 4;snap q0-panel
-taptext 'Edit' || true
+sleep 3;snap q0-panel
+taptext 'Edit order of settings.' || true
 snap q1-edit
 adb shell input swipe 540 1800 540 700 400
-sleep 3;snap q2-edit
+sleep 2;snap q2-edit
+adb shell input swipe 540 1800 540 700 400
+sleep 2;snap q3-edit
