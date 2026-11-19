@@ -31,28 +31,24 @@ taptext(){
  XY=$(python3 /tmp/find.py "$1")
  if [ -n "$XY" ]; then echo "TAP $1 $XY" >> out/taps.txt; adb shell input tap $XY; sleep 3; else echo "NOT FOUND $1" >> "$L"; return 1; fi
 }
-# Gboard clipboard discovery. Nothing is sent or submitted.
-adb shell ime list -s >> "$L"
+# Open the observed toolbar menu at 5.5% width, 65.5% height.
 adb shell am start -a android.settings.SETTINGS >> "$L" 2>&1
 sleep 5
-snap c0-settings
 taptext 'Wait' || true
 sleep 8
 taptext 'Search settings' || taptext 'Search' || true
 adb shell input text 'Tech%sLenses%sdemo'
-snap c1-keyboard
-# Clipboard toolbar is a normal keyboard control if available.
+snap c0-text
+SIZE=$(adb shell wm size | grep -o '[0-9]*x[0-9]*' | head -1)
+W=${SIZE%x*}; H=${SIZE#*x}
+adb shell input tap $((W*55/1000)) $((H*655/1000))
+sleep 3;snap c1-toolbar
 taptext 'Clipboard' || true
 snap c2-clipboard
 taptext 'Turn on clipboard' || true
 snap c3-enabled
 adb shell input keyevent KEYCODE_BACK
 adb shell input keyevent KEYCODE_BACK
-# Read feature support screens without changing feature state.
-for spec in 'l0-livecaption android.settings.LIVE_CAPTION_SETTINGS' 'p0-privacy android.settings.PRIVACY_SETTINGS' 'o0-onehand android.settings.ONE_HANDED_SETTINGS' 'm0-magnification android.settings.ACCESSIBILITY_SETTINGS'; do
- set -- $spec
- adb shell am start -a "$2" >> "$L" 2>&1
- sleep 4
- snap "$1"
- adb shell input keyevent KEYCODE_HOME
-done
+adb shell am start -a android.settings.ACCESSIBILITY_SETTINGS >> "$L" 2>&1
+sleep 3;taptext 'Magnification' || true
+snap m1-settings
