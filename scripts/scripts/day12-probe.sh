@@ -31,10 +31,14 @@ xy(){
  python3 /tmp/find.py "$1"
 }
 taptext(){ XY=$(xy "$1"); if [ -n "$XY" ]; then echo "TAP $1 $XY" >> out/taps.txt; adb shell input tap $XY; sleep 3; else echo "NOT FOUND $1" >> "$L"; return 1; fi; }
-# Scout two new candidates through normal visible settings controls.
+# Record the visible dark-theme path and inspect its schedule menu.
+adb shell am force-stop com.android.settings
 adb shell input keyevent KEYCODE_HOME
 adb shell am start -a android.settings.DISPLAY_SETTINGS >> "$L" 2>&1
-sleep 4;snap d0-display
+sleep 4
+adb shell screenrecord --bit-rate 5000000 --time-limit 150 /sdcard/display-demo.mp4 &
+REC=$!
+snap d0-display
 if taptext 'Dark theme';then
  snap d1-dark
  if taptext 'Use Dark theme';then
@@ -42,8 +46,11 @@ if taptext 'Dark theme';then
   taptext 'Use Dark theme' || true
   snap d3-dark-restored
  fi
+ if taptext 'Schedule';then snap d4-schedule-options;adb shell input keyevent KEYCODE_BACK;fi
 fi
-adb shell input keyevent KEYCODE_HOME
-adb shell am start -a android.settings.DISPLAY_SETTINGS >> "$L" 2>&1
-sleep 3
-if taptext 'Display size and text';then snap f0-size;fi
+adb shell input keyevent KEYCODE_BACK
+sleep 3;snap f0-display-returned
+if taptext 'Display size and text';then snap f1-size-and-text;fi
+adb shell pkill -2 screenrecord || true
+wait "$REC" || true
+adb pull /sdcard/display-demo.mp4 out/display-demo.mp4 >> "$L" 2>&1
