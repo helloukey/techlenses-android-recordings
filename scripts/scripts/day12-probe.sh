@@ -31,48 +31,28 @@ xy(){
  python3 /tmp/find.py "$1"
 }
 taptext(){ XY=$(xy "$1"); if [ -n "$XY" ]; then echo "TAP $1 $XY" >> out/taps.txt; adb shell input tap $XY; sleep 3; else echo "NOT FOUND $1" >> "$L"; return 1; fi; }
-dragtext(){
- A=$(xy "$1");B=$(xy "$2"); if [ -z "$A" ] || [ -z "$B" ];then return 1;fi
- read -r X Y <<< "$A"; read -r U V <<< "$B"
- echo "DRAG $1 $A TO $2 $B" >> out/taps.txt
- adb shell input touchscreen motionevent DOWN "$X" "$Y";sleep 1
- python3 - "$X" "$Y" "$U" "$V" > /tmp/moves.txt <<'PY'
-import sys
-x,y,u,v=map(int,sys.argv[1:])
-for i in range(1,13):print(round(x+(u-x)*i/12),round(y+(v-y)*i/12))
-PY
- while read -r XX YY;do adb shell input touchscreen motionevent MOVE "$XX" "$YY";sleep .08;done < /tmp/moves.txt
- adb shell input touchscreen motionevent UP "$U" "$V";sleep 4
-}
-adb shell cmd statusbar expand-settings
-sleep 4;snap q0-panel
-if taptext 'Edit order of settings.';then
- snap q1-before
- dragtext 'Bluetooth' 'Internet' || true
- snap q2-reordered
- adb shell input keyevent KEYCODE_BACK
- adb shell cmd statusbar collapse
- adb shell cmd statusbar expand-settings
- sleep 3
- adb shell input swipe 150 900 950 900 450
- adb shell input swipe 150 900 950 900 450
- sleep 2;snap q3-panel-reordered
- if taptext 'Edit order of settings.';then
-  dragtext 'Internet' 'Bluetooth' || true
-  snap q4-restored
-  adb shell input keyevent KEYCODE_BACK
-  snap q5-exit
- fi
-fi
-adb shell input keyevent KEYCODE_HOME
-adb shell cmd notification post -t 'Tech Lenses demo' tl-demo 'Harmless demo reminder' >> "$L" 2>&1
-adb shell cmd statusbar expand-notifications
-sleep 3;snap n0-notification
-XY=$(xy 'Tech Lenses demo')
-if [ -n "$XY" ];then adb shell input swipe $XY $XY 1200;sleep 3;snap n1-longpress;fi
+# Bounded correction: no Quick Settings drag.
 adb shell input keyevent KEYCODE_HOME
 adb shell am start -a android.settings.SOUND_SETTINGS >> "$L" 2>&1
-sleep 5;snap v0-sound
+sleep 4;snap v0-before
+adb shell settings get system volume_music >> out/volume-state.txt
+# Touch observed Media volume track only; ring/notification/alarm remain separate.
+adb shell input tap 950 774
+sleep 2;snap v1-media-high
+adb shell settings get system volume_music >> out/volume-state.txt
+adb shell input tap 462 774
+sleep 2;snap v2-media-restored
+adb shell settings get system volume_music >> out/volume-state.txt
 adb shell input keyevent KEYCODE_HOME
-adb shell input keyevent KEYCODE_VOLUME_UP
-sleep 1;snap v1-volume
+adb shell cmd notification post -t Tech tl-demo demo >> "$L" 2>&1
+adb shell cmd statusbar expand-notifications
+sleep 3;snap n0-demo
+XY=$(xy Tech)
+if [ -n "$XY" ];then
+ adb shell input swipe $XY $XY 1400;sleep 3;snap n1-options
+ if taptext Silent;then snap n2-silent-choice;taptext Done || true;sleep 3;snap n3-after;fi
+fi
+adb shell cmd statusbar collapse
+adb shell input keyevent KEYCODE_HOME
+adb shell am start -a android.settings.FONT_SIZE_SETTINGS >> "$L" 2>&1
+sleep 4;snap f0-size
