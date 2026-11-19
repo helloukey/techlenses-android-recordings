@@ -31,28 +31,19 @@ xy(){
  python3 /tmp/find.py "$1"
 }
 taptext(){ XY=$(xy "$1"); if [ -n "$XY" ]; then echo "TAP $1 $XY" >> out/taps.txt; adb shell input tap $XY; sleep 3; else echo "NOT FOUND $1" >> "$L"; return 1; fi; }
-# Bounded correction: no Quick Settings drag.
+# Scout two new candidates through normal visible settings controls.
 adb shell input keyevent KEYCODE_HOME
-adb shell am start -a android.settings.SOUND_SETTINGS >> "$L" 2>&1
-sleep 4;snap v0-before
-adb shell settings get system volume_music >> out/volume-state.txt
-# Touch observed Media volume track only; ring/notification/alarm remain separate.
-adb shell input tap 950 774
-sleep 2;snap v1-media-high
-adb shell settings get system volume_music >> out/volume-state.txt
-adb shell input tap 462 774
-sleep 2;snap v2-media-restored
-adb shell settings get system volume_music >> out/volume-state.txt
-adb shell input keyevent KEYCODE_HOME
-adb shell cmd notification post -t Tech tl-demo demo >> "$L" 2>&1
-adb shell cmd statusbar expand-notifications
-sleep 3;snap n0-demo
-XY=$(xy Tech)
-if [ -n "$XY" ];then
- adb shell input swipe $XY $XY 1400;sleep 3;snap n1-options
- if taptext Silent;then snap n2-silent-choice;taptext Done || true;sleep 3;snap n3-after;fi
+adb shell am start -a android.settings.DISPLAY_SETTINGS >> "$L" 2>&1
+sleep 4;snap d0-display
+if taptext 'Dark theme';then
+ snap d1-dark
+ if taptext 'Use Dark theme';then
+  snap d2-dark-on
+  taptext 'Use Dark theme' || true
+  snap d3-dark-restored
+ fi
 fi
-adb shell cmd statusbar collapse
 adb shell input keyevent KEYCODE_HOME
-adb shell am start -a android.settings.FONT_SIZE_SETTINGS >> "$L" 2>&1
-sleep 4;snap f0-size
+adb shell am start -a android.settings.DISPLAY_SETTINGS >> "$L" 2>&1
+sleep 3
+if taptext 'Display size and text';then snap f0-size;fi
