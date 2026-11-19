@@ -1,0 +1,3 @@
+TAP Screen timeout 240 1357
+TAP 30 seconds 326 830
+TAP 2 minutes 306 1140

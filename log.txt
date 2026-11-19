@@ -1,0 +1,11 @@
+14
+Starting: Intent { act=android.settings.DISPLAY_SETTINGS }
+## t0-display
+Display | Navigate up | Brightness | Brightness level | 83% | Lock display | Lock screen | Show all notification content | Screen timeout | Not set | Appearance | Dark theme | Will never turn on automatically | Dark theme | Screen saver | On / Clock | Display size and text | Navigation mode | Gesture navigation
+## t1-choices
+Screen timeout | Navigate up | 15 seconds | 30 seconds | 1 minute | 2 minutes | 5 minutes | 10 minutes | 30 minutes
+## t2-thirty-seconds
+Screen timeout | Navigate up | 15 seconds | 30 seconds | 1 minute | 2 minutes | 5 minutes | 10 minutes | 30 minutes
+## t3-two-minutes
+Screen timeout | Navigate up | 15 seconds | 30 seconds | 1 minute | 2 minutes | 5 minutes | 10 minutes | 30 minutes
+/sdcard/timeout-demo.mp4: 1 file pulled, 0 skipped. 180.8 MB/s (715521 bytes in 0.004s)
