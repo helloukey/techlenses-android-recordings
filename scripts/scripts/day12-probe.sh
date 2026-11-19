@@ -46,9 +46,26 @@ sleep 3;snap c1-toolbar
 # Clipboard icon visibly centered at x50%, y65.5% in run41.
 adb shell input tap $((W*50/100)) $((H*655/1000))
 sleep 3;snap c2-clipboard
-# Use any accessible activation control if offered.
-taptext 'Turn on clipboard' || true
-snap c3-enabled
+# Observed Turn on Clipboard button at75%,81.3%.
+adb shell input tap $((W*75/100)) $((H*813/1000))
+sleep 3;snap c3-enabled
+# Select only harmless sample text. No submit or send.
+adb shell input swipe $((W*35/100)) $((H*87/1000)) $((W*35/100)) $((H*87/1000)) 1000
+sleep 3;snap c4-selection
+taptext 'Select all' || true
+snap c5-selectall
+taptext 'Copy' || true
+snap c6-copied
+# Return to the visible clipboard panel through same observed toolbar coordinates.
+adb shell input tap $((W*55/1000)) $((H*655/1000))
+sleep 2
+adb shell input tap $((W*50/100)) $((H*655/1000))
+sleep 3;snap c7-clip
+# Long press the first clip, capture available actions, act only on actual Pin label.
+adb shell input swipe $((W*25/100)) $((H*77/100)) $((W*25/100)) $((H*77/100)) 1000
+sleep 3;snap c8-clipactions
+taptext 'Pin' || true
+snap c9-pinned
 adb shell input keyevent KEYCODE_BACK
 adb shell input keyevent KEYCODE_BACK
 adb shell am start -a android.settings.ACCESSIBILITY_SETTINGS >> "$L" 2>&1
@@ -60,3 +77,10 @@ sleep 3;snap m2-shortcut
 # Follow only an actual approval label if present, capture remaining instructions.
 taptext 'Got it' || true
 snap m3-shortcut
+# Floating shortcut visible at94%,74%; activate then select display center.
+adb shell input tap $((W*94/100)) $((H*74/100))
+sleep 2;snap m4-activated
+adb shell input tap $((W*50/100)) $((H*32/100))
+sleep 3;snap m5-zoomed
+adb shell input tap $((W*94/100)) $((H*74/100))
+sleep 3;snap m6-exit
